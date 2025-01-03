@@ -5,21 +5,31 @@ from collections import deque
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
+import os
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
+
 class Agent:
 
-    def __init__(self):
+    def __init__(self, load_existing_model=False):
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(11, 256, 3)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
+        # Si load_existing_model est True et que le fichier existe, charger le modèle
+        if load_existing_model and os.path.exists('./model/model.pth'):
+            print("Chargement du modèle existant...")
+            self.epsilon
+            self.model.load_state_dict(torch.load('./model/model.pth'))
+        else:
+            print("Aucun modèle existant trouvé, entraînement d'un nouveau modèle...")
+
+        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def get_state(self, game):
         head = game.snake[0]
@@ -105,7 +115,13 @@ def train():
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = Agent()
+
+    # Demande à l'utilisateur s'il veut charger un modèle existant
+    load_existing_model = input("Voulez-vous charger un modèle existant (model.pth) ? (oui/non) ").strip().lower() == 'oui'
+
+    # Initialiser l'agent avec ou sans chargement du modèle existant
+    agent = Agent(load_existing_model=load_existing_model)
+
     game = SnakeGameAI()
     while True:
         # get old state
@@ -136,12 +152,54 @@ def train():
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
-            plot_scores.append(score)
+def test():
+    # Charger le modèle existant
+    load_existing_model = True  # Toujours charger le modèle pré-entraîné
+    agent = Agent(load_existing_model=load_existing_model)
+    # Créer une instance du jeu
+    game = SnakeGameAI()
+
+    # Initialiser les variables de score
+    total_score = 0
+    record = 0
+
+    while True:
+        # Obtenir l'état actuel du jeu
+        state_old = agent.get_state(game)
+
+        # Décider de l'action à effectuer avec le modèle (pas d'exploration, juste de l'exploitation)
+        final_move = agent.get_action(state_old)
+
+        # Effectuer le mouvement et obtenir les nouveaux résultats du jeu
+        reward, done, score = game.play_step(final_move)
+        state_new = agent.get_state(game)
+
+        # Afficher l'état du jeu à chaque étape si nécessaire (facultatif)
+        # game.render()
+
+        # Vérifier si la partie est terminée
+        if done:
+            # Si la partie est terminée, afficher le score
+            print(f"Partie terminée. Score final: {score}, Record: {record}")
+
+            # Garder une trace du meilleur score
+            if score > record:
+                record = score
+
+            # Réinitialiser le jeu pour une nouvelle partie (si souhaité)
+            game.reset()
             total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
-            plot(plot_scores, plot_mean_scores)
+            break  # Sortir de la boucle après une partie terminée, ou continuer pour de nouvelles parties
+
+    # Afficher les résultats finaux
+    print(f"Score total: {total_score}, Record: {record}")
+
+
 
 
 if __name__ == '__main__':
-    train()
+    choix = input("Voulez-vous entrainer le modèle ? (oui/non) ").strip().lower() == 'oui';
+    if choix:
+        train()
+    else :
+        test()
