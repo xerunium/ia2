@@ -2,6 +2,7 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
+from collections import deque
 import numpy as np
 
 pygame.init()
@@ -76,6 +77,14 @@ class SnakeGameAI:
         # 3. check if game over
         reward = 0
         game_over = False
+
+        # Détection de cycles basée sur les mouvements
+        self.last_moves = getattr(self, "last_moves", deque(maxlen=20))  # Mémoriser les 20 derniers mouvements
+        self.last_moves.append(action)
+        if len(self.last_moves) == 20 and list(self.last_moves)[:10] == list(self.last_moves)[10:]:
+            reward -= 2
+
+
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
             reward = -10

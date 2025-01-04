@@ -109,6 +109,20 @@ class Agent:
 
         return final_move
 
+    def get_actionTest(self, state):
+        self.epsilon = 0
+        final_move = [0,0,0]
+        if random.randint(0, 200) < self.epsilon:
+            move = random.randint(0, 2)
+            final_move[move] = 1
+        else:
+            state0 = torch.tensor(state, dtype=torch.float)
+            prediction = self.model(state0)
+            move = torch.argmax(prediction).item()
+            final_move[move] = 1
+
+        return final_move
+
 
 def train():
     plot_scores = []
@@ -153,47 +167,28 @@ def train():
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
 def test():
-    # Charger le modèle existant
-    load_existing_model = True  # Toujours charger le modèle pré-entraîné
+    load_existing_model = True
     agent = Agent(load_existing_model=load_existing_model)
-    # Créer une instance du jeu
     game = SnakeGameAI()
 
-    # Initialiser les variables de score
     total_score = 0
-    record = 0
+    num_games = 20  # Nombre d'épisodes de test
 
-    while True:
-        # Obtenir l'état actuel du jeu
-        state_old = agent.get_state(game)
+    for _ in range(num_games):
+        state = agent.get_state(game)
+        done = False
+        score = 0
 
-        # Décider de l'action à effectuer avec le modèle (pas d'exploration, juste de l'exploitation)
-        final_move = agent.get_action(state_old)
+        while not done:
+            final_move = agent.get_actionTest(state)
+            reward, done, score = game.play_step(final_move)
+            state = agent.get_state(game)
 
-        # Effectuer le mouvement et obtenir les nouveaux résultats du jeu
-        reward, done, score = game.play_step(final_move)
-        state_new = agent.get_state(game)
+        total_score += score
+        game.reset()
 
-        # Afficher l'état du jeu à chaque étape si nécessaire (facultatif)
-        # game.render()
-
-        # Vérifier si la partie est terminée
-        if done:
-            # Si la partie est terminée, afficher le score
-            print(f"Partie terminée. Score final: {score}, Record: {record}")
-
-            # Garder une trace du meilleur score
-            if score > record:
-                record = score
-
-            # Réinitialiser le jeu pour une nouvelle partie (si souhaité)
-            game.reset()
-            total_score += score
-            break  # Sortir de la boucle après une partie terminée, ou continuer pour de nouvelles parties
-
-    # Afficher les résultats finaux
-    print(f"Score total: {total_score}, Record: {record}")
-
+    avg_score = total_score / num_games
+    print(f"Score moyen sur {num_games} parties : {avg_score}")
 
 
 
