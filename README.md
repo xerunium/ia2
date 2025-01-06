@@ -1,10 +1,22 @@
-# Teach AI To Play Snake! Reinforcement Learning With PyTorch and Pygame
+# Projet Snake AI
 
-In this Python Reinforcement Learning Tutorial series we teach an AI to play Snake! We build everything from scratch using Pygame and PyTorch. The tutorial consists of 4 parts:
+**Ce projet présente deux solutions de résolution du jeu Snake automatique, une par algorithme et une par apprentissage renforcé**
 
-You can find all tutorials on my channel: [Playlist](https://www.youtube.com/playlist?list=PLqnslRFeH2UrDh7vUmJ60YrmWd64mTTKV)
+Pour pouvoir utiliser ce projet les libraires suivantes vont être nécessaires :
 
-- Part 1: I'll show you the project and teach you some basics about Reinforcement Learning and Deep Q Learning.
-- Part 2: Learn how to setup the environment and implement the Snake game.
-- Part 3: Implement the agent that controls the game.
-- Part 4: Implement the neural network to predict the moves and train it.
+-PyTorch ```pip install torch```
+
+-Numpy ```pip install numpy```
+
+-PyGame ```pip install pygame```
+
+-MatPlotLib ```pip install matplotlib```
+
+-IPython ```pip install IPython```
+
+
+Une fois ces libraires installées il est possible de lancer :
+
+-La résolution algorithmique en lançant algorithmicSolve.py et en choisissant un des deux algorithmes A* ou BFS
+
+-La résolution par reinforcement learning en lançant agent et en choisissant d'entrainer un modèle ou de tester le modèle existant
